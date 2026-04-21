@@ -98,6 +98,15 @@ class AdminController extends Controller
             $this->recalculateQueuePositions();
         }
 
+        // Restore stock when an order is cancelled (only when transitioning INTO cancelled)
+        if ($request->status === 'cancelled' && $oldStatus !== 'cancelled') {
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
+        }
+
         $order->load('items.product');
 
         return response()->json([
