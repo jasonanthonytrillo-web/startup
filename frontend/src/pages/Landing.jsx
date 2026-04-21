@@ -27,7 +27,7 @@ export default function Landing() {
   return (
     <div className="landing" id="landing-page">
       <div className="landing-content" style={{ animation: 'fadeIn 0.8s ease-out' }}>
-        <div 
+        <div
           className="landing-badge"
           onClick={() => navigate('/login')}
           style={{ cursor: 'pointer' }}
@@ -37,13 +37,9 @@ export default function Landing() {
         </div>
 
         <h1 className="landing-title">
-          Everything<br />
-          <span className="highlight">Flippin' Fresh</span>
+          MK Food<br />
+          <span className="highlight">Corner</span>
         </h1>
-
-        <p className="landing-subtitle">
-          From Kiosk to your Phone. Order your favorites from anywhere and track your meal in real-time.
-        </p>
 
         <div className="landing-cta" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', alignItems: 'center', width: '100%', maxWidth: '300px', margin: '0 auto' }}>
           <Link to="/menu" className="btn btn-primary btn-block" id="start-order-btn">
