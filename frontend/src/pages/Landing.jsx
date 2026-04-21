@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function Landing() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [lastOrderNumber, setLastOrderNumber] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -10,6 +11,9 @@ export default function Landing() {
       e.preventDefault();
       setDeferredPrompt(e);
     });
+    // Read last order from localStorage
+    const saved = localStorage.getItem('last_order_number');
+    if (saved) setLastOrderNumber(saved);
   }, []);
 
   const handleInstall = async () => {
@@ -58,6 +62,22 @@ export default function Landing() {
             >
               📥 Install App to Home Screen
             </button>
+          )}
+
+          {lastOrderNumber && (
+            <Link
+              to={`/order/${lastOrderNumber}`}
+              id="retrieve-receipt-btn"
+              style={{
+                fontSize: '0.78rem',
+                color: 'var(--color-text-secondary)',
+                textDecoration: 'underline',
+                marginTop: 'var(--space-xs)',
+                opacity: 0.7,
+              }}
+            >
+              🧾 Retrieve last order receipt (#{lastOrderNumber})
+            </Link>
           )}
         </div>
       </div>

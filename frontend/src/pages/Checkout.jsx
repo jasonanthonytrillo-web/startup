@@ -77,6 +77,9 @@ export default function Checkout() {
       const response = await createOrder(orderData);
       const order = response.data.data;
 
+      // Save last order number so customer can retrieve receipt if they close the page
+      localStorage.setItem('last_order_number', order.order_number);
+
       setOrderSuccess(true);
       clearCart();
       navigate(`/order/${order.order_number}`);
