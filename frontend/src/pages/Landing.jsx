@@ -37,8 +37,8 @@ export default function Landing() {
         </div>
 
         <h1 className="landing-title">
-          MK Food<br />
-          <span className="highlight">Corner</span>
+          MK<br />
+          <span className="highlight">Food Corner</span>
         </h1>
 
         <div className="landing-cta" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', alignItems: 'center', width: '100%', maxWidth: '300px', margin: '0 auto' }}>
