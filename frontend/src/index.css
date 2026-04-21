@@ -129,8 +129,8 @@ input, select, textarea {
 
 .glass-card {
   background: var(--color-bg-card);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -222,11 +222,26 @@ input, select, textarea {
 }
 
 /* Staggered delay utility */
-.delay-1 { animation-delay: 0.1s; opacity: 0; }
-.delay-2 { animation-delay: 0.2s; opacity: 0; }
-.delay-3 { animation-delay: 0.3s; opacity: 0; }
-.delay-4 { animation-delay: 0.4s; opacity: 0; }
 .delay-5 { animation-delay: 0.5s; opacity: 0; }
+
+/* Collapsible Animation Wrapper */
+.collapsible-wrapper {
+  overflow: hidden;
+  max-height: 500px; /* Large enough for filters */
+  opacity: 1;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease,
+              margin-bottom 0.4s ease,
+              padding-top 0.4s ease;
+}
+
+.collapsible-wrapper.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  pointer-events: none;
+}
 
 /* ========== Navbar ========== */
 .navbar {
@@ -234,8 +249,8 @@ input, select, textarea {
   top: 0;
   z-index: 100;
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-md) 0;
 }
@@ -480,7 +495,7 @@ input, select, textarea {
 /* ========== Product Card ========== */
 .product-card {
   background: var(--color-bg-card);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(8px);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1401,9 +1416,20 @@ input, select, textarea {
 /* ========== Admin Analytics & Stale States ========== */
 .admin-summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: var(--space-lg);
   margin-bottom: var(--space-2xl);
+}
+
+@media (max-width: 600px) {
+  .admin-summary-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+  
+  .summary-value {
+    font-size: 1.5rem !important;
+  }
 }
 
 .summary-card {
@@ -1507,6 +1533,90 @@ select.status-badge option {
   background-color: white !important;
   color: #1e293b !important; /* Dark slate text */
   padding: 10px !important;
+}
+
+.filter-select {
+  padding: 6px 32px 6px 12px !important;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  background-color: white;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px;
+}
+
+.filter-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+/* Product Management Mobile Grid */
+.product-grid-mobile {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.product-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+}
+
+.product-table-wrapper {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .product-table-wrapper {
+    display: none;
+  }
+  
+  .product-grid-mobile {
+    display: flex;
+  }
+  
+  .product-management-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+  
+  .product-management-header button {
+    width: 100%;
+  }
+}
+
+.product-mobile-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.product-mobile-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.product-mobile-label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.product-mobile-value {
+  font-weight: 700;
 }
 
 

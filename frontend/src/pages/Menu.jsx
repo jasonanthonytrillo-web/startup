@@ -12,13 +12,33 @@ export default function Menu() {
   }, []);
 
   const loadProducts = async () => {
+    // Try to load from session cache first for instant navigation
+    const cachedData = sessionStorage.getItem('cached_menu_data');
+    if (cachedData) {
+      try {
+        setProducts(JSON.parse(cachedData));
+        setLoading(false);
+        // Refresh cache in the background (optional, but keeps data fresh)
+        fetchAndCacheProducts(false);
+        return;
+      } catch (e) {
+        sessionStorage.removeItem('cached_menu_data');
+      }
+    }
+    
+    await fetchAndCacheProducts(true);
+  };
+
+  const fetchAndCacheProducts = async (shouldSetLoading) => {
     try {
       const response = await getProducts();
-      setProducts(response.data.data);
+      const productData = response.data.data;
+      setProducts(productData);
+      sessionStorage.setItem('cached_menu_data', JSON.stringify(productData));
     } catch (error) {
       console.error('Failed to load products:', error);
     } finally {
-      setLoading(false);
+      if (shouldSetLoading) setLoading(false);
     }
   };
 

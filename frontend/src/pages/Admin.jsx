@@ -29,6 +29,7 @@ export default function Admin() {
     week: { sales: 0, orders: 0, completed: 0, cancelled: 0 },
     month: { sales: 0, orders: 0, completed: 0, cancelled: 0 },
   });
+  const [showFilters, setShowFilters] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -150,36 +151,52 @@ export default function Admin() {
           </div>
         </div>
 
-        <div className="admin-summary-grid animate-fade-in-up delay-1">
-          <div className="summary-card">
-            <span className="summary-label">Total Sales</span>
-            <span className="summary-value sales">₱{parseFloat(summary[selectedPeriod].sales).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-          </div>
-          <div className="summary-card">
-            <span className="summary-label">Orders</span>
-            <span className="summary-value">{summary[selectedPeriod].orders}</span>
-          </div>
-          <div className="summary-card">
-            <span className="summary-label">Completed</span>
-            <span className="summary-value" style={{ color: 'var(--color-success)' }}>{summary[selectedPeriod].completed}</span>
-          </div>
-          <div className="summary-card">
-            <span className="summary-label">Cancelled</span>
-            <span className="summary-value" style={{ color: 'var(--color-danger)' }}>{summary[selectedPeriod].cancelled}</span>
+        <div className={`collapsible-wrapper ${!showFilters ? 'collapsed' : ''}`}>
+          <div className="admin-summary-grid animate-fade-in-up delay-1">
+            <div className="summary-card">
+              <span className="summary-label">Total Sales</span>
+              <span className="summary-value sales">₱{parseFloat(summary[selectedPeriod].sales).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Orders</span>
+              <span className="summary-value">{summary[selectedPeriod].orders}</span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Completed</span>
+              <span className="summary-value" style={{ color: 'var(--color-success)' }}>{summary[selectedPeriod].completed}</span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Cancelled</span>
+              <span className="summary-value" style={{ color: 'var(--color-danger)' }}>{summary[selectedPeriod].cancelled}</span>
+            </div>
           </div>
         </div>
 
         <div className="admin-tabs animate-fade-in-up delay-2" style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)', borderBottom: '1px solid var(--color-border)' }}>
           <button
             className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('orders')}
+            onClick={() => {
+              if (activeTab === 'orders') {
+                setShowFilters(!showFilters);
+              } else {
+                setActiveTab('orders');
+                setShowFilters(true);
+              }
+            }}
             style={{ borderRadius: 'var(--radius-md) var(--radius-md) 0 0', borderBottom: 'none' }}
           >
             Orders
           </button>
           <button
             className={`btn ${activeTab === 'products' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('products')}
+            onClick={() => {
+              if (activeTab === 'products') {
+                setShowFilters(!showFilters);
+              } else {
+                setActiveTab('products');
+                setShowFilters(true);
+              }
+            }}
             style={{ borderRadius: 'var(--radius-md) var(--radius-md) 0 0', borderBottom: 'none' }}
           >
             Products
@@ -197,28 +214,30 @@ export default function Admin() {
 
         {activeTab === 'orders' ? (
           <>
-            <div className="admin-filters animate-fade-in-up delay-2">
-              {statusFilters.map((filter) => (
+            <div className={`collapsible-wrapper ${!showFilters ? 'collapsed' : ''}`}>
+              <div className="admin-filters animate-fade-in-up delay-2">
+                {statusFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    className={`category-tab ${activeFilter === filter.id ? 'active' : ''}`}
+                    onClick={() => setActiveFilter(filter.id)}
+                    id={`filter-${filter.id}`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
                 <button
-                  key={filter.id}
-                  className={`category-tab ${activeFilter === filter.id ? 'active' : ''}`}
-                  onClick={() => setActiveFilter(filter.id)}
-                  id={`filter-${filter.id}`}
+                  className="btn btn-sm btn-secondary"
+                  onClick={() => {
+                    setLoading(true);
+                    loadOrders();
+                  }}
+                  style={{ marginLeft: 'auto' }}
+                  id="refresh-orders-btn"
                 >
-                  {filter.label}
+                  Refresh
                 </button>
-              ))}
-              <button
-                className="btn btn-sm btn-secondary"
-                onClick={() => {
-                  setLoading(true);
-                  loadOrders();
-                }}
-                style={{ marginLeft: 'auto' }}
-                id="refresh-orders-btn"
-              >
-                Refresh
-              </button>
+              </div>
             </div>
 
             <div className="admin-orders">
@@ -239,7 +258,7 @@ export default function Admin() {
             </div>
           </>
         ) : (
-          <ProductManagement />
+          <ProductManagement showFilters={showFilters} />
         )}
       </div>
 
