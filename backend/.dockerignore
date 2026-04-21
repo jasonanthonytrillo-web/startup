@@ -4,7 +4,6 @@
 .git
 .gitignore
 Dockerfile
-/docker
 /tests
 storage/*.log
 bootstrap/cache/*
