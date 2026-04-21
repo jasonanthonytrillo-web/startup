@@ -103,12 +103,14 @@ class ProductSeeder extends Seeder
             ],
         ];
 
-        foreach ($products as $product) {
-            $product['stock'] = 50; // Give initial stock
-            Product::updateOrCreate(
-                ['name' => $product['name']],
-                $product
-            );
-        }
+        // Prepare data with initial stock
+        $data = array_map(function($product) {
+            $product['stock'] = 50;
+            $product['available'] = true;
+            return $product;
+        }, $products);
+
+        // Perform a bulk upsert (Update or Insert) in a single database call
+        Product::upsert($data, ['name'], ['description', 'price', 'category', 'image', 'stock', 'available']);
     }
 }

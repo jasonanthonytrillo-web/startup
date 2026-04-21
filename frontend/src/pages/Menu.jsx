@@ -36,9 +36,24 @@ export default function Menu() {
   if (loading) {
     return (
       <div className="menu-page">
-        <div className="container" style={{ textAlign: 'center', padding: '4rem 0' }}>
+        <div className="container">
+          <div className="page-header animate-pulse">
+            <div style={{ height: '2.5rem', width: '200px', backgroundColor: 'var(--color-bg-glass)', borderRadius: 'var(--radius-md)', margin: '0 auto var(--space-md)' }}></div>
+            <div style={{ height: '1.2rem', width: '300px', backgroundColor: 'var(--color-bg-glass)', borderRadius: 'var(--radius-sm)', margin: '0 auto' }}></div>
+          </div>
 
-          <p style={{ color: 'var(--color-text-secondary)' }}>Loading menu...</p>
+          {[1, 2].map((i) => (
+            <div key={i} className="category-section">
+              <div style={{ height: '2rem', width: '150px', backgroundColor: 'var(--color-bg-glass)', borderRadius: 'var(--radius-sm)', marginBottom: 'var(--space-lg)' }} className="animate-pulse"></div>
+              <div className="products-grid">
+                {[1, 2, 3].map((j) => (
+                  <div key={j} className="product-card skeleton" style={{ height: '350px', backgroundColor: 'var(--color-bg-glass)', borderRadius: 'var(--radius-lg)' }}>
+                    <div className="animate-pulse" style={{ height: '100%', width: '100%' }}></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
