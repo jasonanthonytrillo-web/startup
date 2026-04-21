@@ -8,7 +8,7 @@
   "theme_color": "#ff6b35",
   "icons": [
     {
-      "src": "./mk_food_corner_app_icon_1776718136817.png",
+      "src": "/mk_food_corner_app_icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
