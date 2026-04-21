@@ -72,7 +72,7 @@ export default function Landing() {
                 opacity: 0.7,
               }}
             >
-              🧾 Retrieve last order receipt (#{lastOrderNumber})
+              🧾 View Order Receipt
             </Link>
           )}
         </div>
