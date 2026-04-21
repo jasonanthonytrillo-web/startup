@@ -1,0 +1,25 @@
+{
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/vendor": true
+    },
+    "files.exclude": {
+        "**/node_modules": false,
+        "**/vendor": false
+    },
+    "intelephense.files.exclude": [
+        "**/.git/**",
+        "**/.svn/**",
+        "**/.hg/**",
+        "**/CVS/**",
+        "**/.DS_Store/**",
+        "**/node_modules/**",
+        "**/bower_components/**",
+        "**/vendor/**/{Tests,tests}/**",
+        "**/.history/**",
+        "**/vendor/**/docs/**"
+    ],
+    "php.suggest.basic": false,
+    "javascript.validate.enable": true,
+    "typescript.validate.enable": true
+}

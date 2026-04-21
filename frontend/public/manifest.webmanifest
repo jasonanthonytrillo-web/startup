@@ -1,0 +1,17 @@
+{
+  "name": "MK Food Corner Kiosk",
+  "short_name": "MK Kiosk",
+  "description": "Premium Digital ordering experience for MK Food Corner.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff6b35",
+  "icons": [
+    {
+      "src": "./mk_food_corner_app_icon_1776718136817.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
