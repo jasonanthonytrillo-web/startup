@@ -31,10 +31,16 @@ export default function Admin() {
   });
 
   useEffect(() => {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
     loadOrders();
-    const interval = setInterval(loadOrders, 5000); // Poll every 5 seconds
+    const interval = setInterval(loadOrders, 10000); // Poll every 10 seconds (slower is better for free tier)
     return () => clearInterval(interval);
-  }, []);
+  }, [navigate]);
 
   const loadOrders = async () => {
     try {
@@ -100,7 +106,9 @@ export default function Admin() {
       <div className="admin-page">
         <div className="container" style={{ textAlign: 'center', padding: '4rem 0' }}>
           <p style={{ color: 'var(--color-text-secondary)' }}>Loading orders...</p>
-        </div>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: 'var(--space-sm)' }}>
+            Note: It may take up to 60 seconds to "wake up" the server on the first try.
+          </p>
       </div>
     );
   }
