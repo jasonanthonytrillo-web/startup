@@ -1411,6 +1411,31 @@ input, select, textarea {
   .stat-number {
     font-size: 1.5rem;
   }
+
+  .step-label {
+    font-size: 0.65rem;
+  }
+
+  .admin-sales-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .admin-filters .btn-secondary {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  .category-tab {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.8rem;
+  }
+
+  .add-to-cart-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1.2rem !important;
+  }
 }
 
 /* ========== Admin Analytics & Stale States ========== */
@@ -1440,12 +1465,6 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  transition: all var(--transition-normal);
-}
-
-.summary-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
 }
 
 .summary-label {
@@ -1670,8 +1689,91 @@ select.status-badge option {
   max-width: 450px;
 }
 
+/* ========== Toast Notifications ========== */
+.toast-container {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  pointer-events: none;
+}
 
+.toast {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  border: 1px solid var(--color-border);
+  padding: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  pointer-events: auto;
+  cursor: pointer;
+  min-width: 300px;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
 
+.toast:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+  border-color: var(--color-primary);
+}
+
+.toast-icon {
+  font-size: 1.5rem;
+  background: rgba(255, 107, 53, 0.1);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.toast-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-content strong {
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+}
+
+.toast-content span {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.toast-close:hover {
+  color: var(--color-danger);
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    bottom: var(--space-md);
+    right: var(--space-md);
+    left: var(--space-md);
+  }
+  .toast {
+    min-width: 0;
+    width: 100%;
+  }
+}
 
 /* ========== Status Stepper ========== */
 .status-stepper {
@@ -1757,12 +1859,13 @@ select.status-badge option {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.2); /* Much lighter, just a slight tint */
+  backdrop-filter: blur(8px); /* Stronger glass blur */
+  -webkit-backdrop-filter: blur(8px); /* For Safari */
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 9999; /* Ensure it stays on top */
   padding: var(--space-md);
   animation: fade-in var(--transition-normal);
 }
@@ -1771,9 +1874,11 @@ select.status-badge option {
   background: white;
   width: 100%;
   max-width: 600px;
+  max-height: 90vh; /* Prevent modal from exceeding screen height */
+  display: flex;
+  flex-direction: column;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-2xl);
-  overflow: hidden;
   animation: slide-up var(--transition-normal);
 }
 
@@ -1784,6 +1889,13 @@ select.status-badge option {
   justify-content: space-between;
   align-items: center;
   background: var(--color-bg-secondary);
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0;
 }
 
 .modal-body {

@@ -225,6 +225,7 @@ export default function ProductManagement({ showFilters = true }) {
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleSaveProduct}
         product={selectedProduct}
+        existingCategories={[...new Set(products.map(p => p.category))]}
       />
     </div>
   );

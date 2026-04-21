@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAdminOrders, updateOrderStatus, logout } from '../services/api';
 import OrderCard from '../components/OrderCard';
@@ -30,6 +30,7 @@ export default function Admin() {
     month: { sales: 0, orders: 0, completed: 0, cancelled: 0 },
   });
   const [showFilters, setShowFilters] = useState(true);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -39,14 +40,38 @@ export default function Admin() {
     }
 
     loadOrders();
-    const interval = setInterval(loadOrders, 10000); // Poll every 10 seconds (slower is better for free tier)
+    const interval = setInterval(loadOrders, 10000); // Poll every 10 seconds
     return () => clearInterval(interval);
   }, [navigate]);
 
   const loadOrders = async () => {
     try {
       const response = await getAdminOrders('all');
-      setOrders(response.data.data);
+      const fetchedOrders = response.data.data;
+      
+      const storedIds = JSON.parse(sessionStorage.getItem('seenOrderIds') || '[]');
+      const previousIds = new Set(storedIds);
+      const currentIds = new Set(fetchedOrders.map(o => o.id));
+      
+      if (previousIds.size > 0) {
+        const newPendingOrders = fetchedOrders.filter(
+          o => !previousIds.has(o.id) && o.status === 'pending'
+        );
+        
+        if (newPendingOrders.length > 0) {
+          setNotifications(prev => {
+            const existingIds = new Set(prev.map(n => n.id));
+            const distinctNew = newPendingOrders.filter(n => !existingIds.has(n.id));
+            return [...prev, ...distinctNew];
+          });
+        }
+      } else if (fetchedOrders.length > 0) {
+        // First ever load in this session, don't notify but do store them
+      }
+      
+      sessionStorage.setItem('seenOrderIds', JSON.stringify(Array.from(currentIds)));
+
+      setOrders(fetchedOrders);
       if (response.data.summary) {
         setSummary(response.data.summary);
       }
@@ -123,7 +148,7 @@ export default function Admin() {
           <p className="page-subtitle">Manage and update order statuses</p>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--space-md)' }} className="animate-fade-in-up delay-1">
+        <div className="admin-sales-header animate-fade-in-up delay-1" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
           <div>
             <p className="page-subtitle" style={{ marginBottom: 'var(--space-xs)' }}>Sales Overview</p>
           </div>
@@ -172,7 +197,7 @@ export default function Admin() {
           </div>
         </div>
 
-        <div className="admin-tabs animate-fade-in-up delay-2" style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="admin-tabs animate-fade-in-up delay-2" style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)', borderBottom: '1px solid var(--color-border)' }}>
           <button
             className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => {
@@ -260,6 +285,35 @@ export default function Admin() {
         ) : (
           <ProductManagement showFilters={showFilters} />
         )}
+      </div>
+
+      {/* Toast Notifications */}
+      <div className="toast-container">
+        {notifications.map((order, idx) => (
+          <div 
+            key={order.id + '-' + idx} 
+            className="toast animate-fade-in-up"
+            onClick={() => {
+              setNotifications(prev => prev.filter(n => n.id !== order.id));
+              setActiveTab('orders');
+              setActiveFilter('pending');
+              setSelectedOrder(order);
+            }}
+          >
+            <div className="toast-icon">🔔</div>
+            <div className="toast-content">
+              <strong>New Order #{order.order_number}</strong>
+              <span>{order.customer_name} • ₱{order.total}</span>
+            </div>
+            <button 
+              className="toast-close"
+              onClick={(e) => {
+                e.stopPropagation();
+                setNotifications(prev => prev.filter(n => n.id !== order.id));
+              }}
+            >&times;</button>
+          </div>
+        ))}
       </div>
 
       <OrderDetailsModal
