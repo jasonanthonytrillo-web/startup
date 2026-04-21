@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: kiosk-api
+    runtime: docker
+    rootDir: backend
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: APP_KEY
+        sync: false # You will set this in the UI
+      - key: DB_HOST
+        sync: false # You will set this in the UI
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USERNAME
+        value: postgres
+      - key: DB_PASSWORD
+        sync: false # You will set this in the UI
