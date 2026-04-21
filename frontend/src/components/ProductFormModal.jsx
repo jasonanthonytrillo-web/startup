@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function ProductFormModal({ isOpen, onClose, onSuccess, product = null }) {
   const [formData, setFormData] = useState({
@@ -11,6 +11,8 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, product =
     available: true
   });
   const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (product) {
@@ -23,6 +25,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, product =
         image: product.image || '',
         available: product.available ?? true
       });
+      setImagePreview(product.image || '');
     } else {
       setFormData({
         name: '',
@@ -33,8 +36,42 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, product =
         image: '',
         available: true
       });
+      setImagePreview('');
     }
   }, [product, isOpen]);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Image must be less than 2MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target.result;
+      setFormData(prev => ({ ...prev, image: base64 }));
+      setImagePreview(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({ ...prev, image: '' }));
+    setImagePreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,17 +172,50 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, product =
             </div>
 
             <div className="form-group">
-              <label className="form-label">Image URL</label>
+              <label className="form-label">Product Image</label>
               <input
-                type="text"
-                className="form-input"
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                placeholder="https://example.com/image.jpg"
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+                id="product-image-upload"
               />
-              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                Leave blank to use a generated placeholder.
-              </p>
+
+              {imagePreview ? (
+                <div className="image-upload-preview">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="image-preview-img"
+                  />
+                  <div className="image-preview-actions">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-secondary"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Change Image
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger"
+                      onClick={removeImage}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="image-upload-dropzone"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="image-upload-icon">📷</div>
+                  <p className="image-upload-text">Click to choose an image</p>
+                  <p className="image-upload-hint">JPG, PNG or WebP • Max 2MB</p>
+                </div>
+              )}
             </div>
           </div>
           <div className="modal-footer" style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-md)', paddingBottom: 'var(--space-md)' }}>
@@ -161,3 +231,4 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, product =
     </div>
   );
 }
+

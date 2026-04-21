@@ -33,7 +33,7 @@ class AdminProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string|max:255',
-            'image' => 'nullable|string|max:255',
+            'image' => 'nullable|string|max:500000',
             'stock' => 'required|integer|min:0',
             'available' => 'boolean',
         ]);
@@ -59,7 +59,7 @@ class AdminProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string|max:255',
-            'image' => 'nullable|string|max:255',
+            'image' => 'nullable|string|max:500000',
             'stock' => 'required|integer|min:0',
             'available' => 'boolean',
         ]);
