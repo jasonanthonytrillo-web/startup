@@ -109,6 +109,7 @@ export default function Admin() {
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: 'var(--space-sm)' }}>
             Note: It may take up to 60 seconds to "wake up" the server on the first try.
           </p>
+        </div>
       </div>
     );
   }
