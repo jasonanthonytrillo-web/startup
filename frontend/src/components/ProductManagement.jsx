@@ -109,7 +109,7 @@ export default function ProductManagement({ showFilters = true }) {
                 onChange={(e) => setStockFilter(e.target.value)}
               >
                 <option value="all">All Stock Status</option>
-                <option value="instock">In Stock (>5)</option>
+                <option value="instock">In Stock (&gt;5)</option>
                 <option value="lowstock">Low Stock (1-5)</option>
                 <option value="out">Out of Stock (0)</option>
               </select>
