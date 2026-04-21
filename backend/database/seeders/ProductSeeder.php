@@ -104,7 +104,11 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
-            Product::create($product);
+            $product['stock'] = 50; // Give initial stock
+            Product::updateOrCreate(
+                ['name' => $product['name']],
+                $product
+            );
         }
     }
 }
