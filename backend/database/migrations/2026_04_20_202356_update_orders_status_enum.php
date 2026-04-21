@@ -11,7 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        \Illuminate\Support\Facades\DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'preparing', 'serving', 'completed', 'cancelled') DEFAULT 'pending'");
+        if (\Illuminate\Support\Facades\DB::getDriverName() === 'mysql') {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'preparing', 'serving', 'completed', 'cancelled') DEFAULT 'pending'");
+        } else {
+            // PostgreSQL syntax
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE orders ALTER COLUMN status TYPE VARCHAR(255)");
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending'");
+        }
     }
 
     /**

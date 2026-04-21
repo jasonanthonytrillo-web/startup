@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Seed the database if needed, otherwise just migrate
-php artisan migrate --force
+php artisan migrate --force --seed
 
 # Optimize
 php artisan config:cache
