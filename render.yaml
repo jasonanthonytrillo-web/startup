@@ -16,10 +16,10 @@ services:
       - key: DB_HOST
         sync: false # You will set this in the UI
       - key: DB_PORT
-        value: "5432"
+        sync: false # You will set this to 6543 in the UI
       - key: DB_DATABASE
         value: postgres
       - key: DB_USERNAME
-        value: postgres
+        sync: false # You will set this to postgres.xxxx in the UI
       - key: DB_PASSWORD
         sync: false # You will set this in the UI
