@@ -41,7 +41,7 @@ export default function Admin() {
     }
 
     loadOrders();
-    const interval = setInterval(loadOrders, 3000); // Poll every 3 seconds for real-time feel
+    const interval = setInterval(loadOrders, 10000); // Poll every 10 seconds to save battery and reduce server load
     return () => clearInterval(interval);
   }, [navigate]);
 
