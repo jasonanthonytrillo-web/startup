@@ -185,7 +185,10 @@ export default function OrderConfirmation() {
             className="btn btn-secondary" 
             style={{ 
               marginTop: 'var(--space-md)', 
-              width: '100%', 
+              width: 'auto',
+              minWidth: '200px',
+              margin: 'var(--space-md) auto',
+              display: 'block',
               color: 'var(--color-danger)',
               borderColor: 'var(--color-danger)',
               background: 'transparent',

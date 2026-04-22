@@ -84,15 +84,16 @@ class AdminController extends Controller
         ]);
 
         try {
-            return DB::transaction(function () use ($request, $id) {
-                // Eager load items and products for stock management
-                $order = Order::with('items.product')->findOrFail($id);
-                $oldStatus = $order->status;
-                $newStatus = $request->status;
+            // Fetch order BEFORE starting transaction to "warm up" the connection
+            $order = Order::with('items.product')->findOrFail($id);
+            $oldStatus = $order->status;
+            $newStatus = $request->status;
 
-                if ($oldStatus === $newStatus) {
-                    return response()->json(['success' => true, 'data' => $order]);
-                }
+            if ($oldStatus === $newStatus) {
+                return response()->json(['success' => true, 'data' => $order]);
+            }
+
+            return DB::transaction(function () use ($request, $order, $newStatus, $oldStatus) {
 
                 $isTerminalCurrent = in_array($oldStatus, ['completed', 'cancelled']);
 
