@@ -29,10 +29,11 @@ export default function ProductManagement({ showFilters = true }) {
   };
 
   // Get unique categories for filter
-  const categories = ['all', ...new Set(products.map(p => p.category))];
+  const categories = ['all', ...new Set(Array.isArray(products) ? products.map(p => p.category) : [])];
+  const productsList = Array.isArray(products) ? products : [];
 
   // Filtering Logic
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = productsList.filter(product => {
     const categoryMatch = categoryFilter === 'all' || product.category === categoryFilter;
     
     let stockMatch = true;

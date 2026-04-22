@@ -3,6 +3,9 @@ import api from '../services/api';
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 function urlBase64ToUint8Array(base64String) {
+  if (!base64String || typeof base64String !== 'string') {
+    throw new Error('VAPID Public Key is missing or invalid');
+  }
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
@@ -14,6 +17,11 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export async function subscribeToPush(orderNumber) {
+  if (!VAPID_PUBLIC_KEY) {
+    console.error('VITE_VAPID_PUBLIC_KEY is missing from environment variables');
+    return { success: false, error: 'Push system not configured. Please add VITE_VAPID_PUBLIC_KEY to environment variables.' };
+  }
+
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     console.warn('Push messaging is not supported');
     return { success: false, error: 'Push messaging is not supported in this browser.' };

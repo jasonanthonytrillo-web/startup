@@ -142,21 +142,23 @@ class AdminController extends Controller
 
                 $order->update($updates);
 
-                // Send push notification if status is 'serving'
-                if ($newStatus === 'serving') {
-                    $this->sendPushNotification($order);
-                }
-
                 // Recalculate queue positions when an order is completed
                 if ($newStatus === 'completed') {
                     $this->recalculateQueuePositions();
                 }
 
-                return response()->json([
-                    'success' => true,
-                    'data' => $order->fresh('items.product'),
-                ]);
+                return $order;
             });
+
+            // Send push notification AFTER the database transaction is finished
+            if ($newStatus === 'serving') {
+                $this->sendPushNotification($order);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $order->fresh('items.product'),
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -184,21 +186,33 @@ class AdminController extends Controller
      */
     private function sendPushNotification(Order $order): void
     {
-        $pushSubscriptions = PushSubscription::where('order_number', $order->order_number)->get();
-
-        if ($pushSubscriptions->isEmpty()) {
-            return;
-        }
-
-        $auth = [
-            'VAPID' => [
-                'subject' => env('VAPID_SUBJECT', 'mailto:admin@example.com'),
-                'publicKey' => env('VAPID_PUBLIC_KEY'),
-                'privateKey' => env('VAPID_PRIVATE_KEY'),
-            ],
-        ];
-
         try {
+            // Safety check: If the migration hasn't been run yet, skip push notifications
+            if (!\Schema::hasTable('push_subscriptions')) {
+                return;
+            }
+
+            $pushSubscriptions = PushSubscription::where('order_number', $order->order_number)->get();
+
+            if ($pushSubscriptions->isEmpty()) {
+                return;
+            }
+
+            // Use config() with env() fallbacks for better stability
+            $auth = [
+                'VAPID' => [
+                    'subject' => env('VAPID_SUBJECT', 'mailto:admin@example.com'),
+                    'publicKey' => env('VAPID_PUBLIC_KEY'),
+                    'privateKey' => env('VAPID_PRIVATE_KEY'),
+                ],
+            ];
+
+            // If keys are missing, we can't send push
+            if (!$auth['VAPID']['publicKey'] || !$auth['VAPID']['privateKey']) {
+                \Log::warning('WebPush keys are missing in .env. Skipping notification.');
+                return;
+            }
+
             $webPush = new WebPush($auth);
 
             foreach ($pushSubscriptions as $pushSub) {
@@ -220,14 +234,16 @@ class AdminController extends Controller
 
             foreach ($webPush->flush() as $report) {
                 if (!$report->isSuccess()) {
-                    // Log failure or handle expired subscriptions
                     if ($report->isSubscriptionExpired()) {
-                        PushSubscription::where('endpoint', $report->getEndpoint())->delete();
+                        try {
+                            PushSubscription::where('endpoint', $report->getEndpoint())->delete();
+                        } catch (\Exception $e) { /* ignore */ }
                     }
                 }
             }
         } catch (\Exception $e) {
-            \Log::error('Push notification failed: ' . $e->getMessage());
+            // Log the error but never crash the main request
+            \Log::error('Push notification system error: ' . $e->getMessage());
         }
     }
 }
