@@ -150,9 +150,11 @@ class AdminController extends Controller
                 return $order;
             });
 
-            // Send push notification AFTER the database transaction is finished
+            // Send push notification in the BACKGROUND after the response is sent to the admin
             if ($newStatus === 'serving') {
-                $this->sendPushNotification($order);
+                dispatch(function () use ($order) {
+                    $this->sendPushNotification($order);
+                })->afterResponse();
             }
 
             return response()->json([
