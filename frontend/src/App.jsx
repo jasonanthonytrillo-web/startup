@@ -11,12 +11,16 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Track from './pages/Track';
 import ProtectedRoute from './components/ProtectedRoute';
+import GlobalNotification from './components/GlobalNotification';
+import StockLimitToast from './components/StockLimitToast';
 
 function App() {
   return (
     <CartProvider>
       <Router>
         <Navbar />
+        <GlobalNotification />
+        <StockLimitToast />
         <main style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<Landing />} />

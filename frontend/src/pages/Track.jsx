@@ -1,25 +1,76 @@
-import React, { useState } from 'react';
-import { getOrder } from '../services/api';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getOrder, cancelOrder } from '../services/api';
+import CustomerCancelModal from '../components/CustomerCancelModal';
 
 export default function Track() {
+  const navigate = useNavigate();
   const [orderNumber, setOrderNumber] = useState('');
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const pollingRef = useRef(null);
+
+  useEffect(() => {
+    // Cleanup polling on unmount
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
 
   const handleSearch = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!orderNumber) return;
-    setLoading(true);
+    
+    if (!order) setLoading(true); // Only show loading on initial search
     setError(null);
     try {
       const response = await getOrder(orderNumber);
-      setOrder(response.data.data);
+      const newOrderData = response.data.data;
+      setOrder(newOrderData);
+
+      // Start polling if not already started
+      if (!pollingRef.current) {
+        pollingRef.current = setInterval(() => {
+          refreshOrder(orderNumber);
+        }, 10000);
+      }
     } catch (err) {
       setError('Order not found. Please check the number.');
       setOrder(null);
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshOrder = async (num) => {
+    try {
+      const response = await getOrder(num);
+      const updatedOrder = response.data.data;
+      setOrder(updatedOrder);
+      
+      if (['completed', 'cancelled'].includes(updatedOrder.status)) {
+        setTimeout(() => {
+          localStorage.removeItem('last_order_number');
+          navigate('/');
+        }, 5000);
+      }
+    } catch (err) {
+      console.error('Polling failed:', err);
+    }
+  };
+
+  const handleCancel = async () => {
+    try {
+      await cancelOrder(orderNumber);
+      refreshOrder(orderNumber);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to cancel order.');
     }
   };
 
@@ -70,9 +121,32 @@ export default function Track() {
                 {order.status === 'preparing' && '🍳 Kitchen is preparing your food'}
                 {order.status === 'serving' && '📦 Ready for Pickup!'}
                 {order.status === 'completed' && '✅ Enjoy your meal!'}
-                {order.status === 'cancelled' && '❌ Order has been cancelled.'}
               </p>
             </div>
+            
+            {order.status === 'pending' && (
+              <button 
+                onClick={() => setIsCancelModalOpen(true)}
+                className="btn btn-secondary" 
+                style={{ 
+                  marginTop: 'var(--space-md)', 
+                  width: '100%', 
+                  color: 'var(--color-danger)',
+                  borderColor: 'var(--color-danger)',
+                  background: 'transparent',
+                  padding: '12px'
+                }}
+              >
+                Cancel Order
+              </button>
+            )}
+
+            <CustomerCancelModal
+              isOpen={isCancelModalOpen}
+              onClose={() => setIsCancelModalOpen(false)}
+              onConfirm={handleCancel}
+              orderNumber={orderNumber}
+            />
           </div>
         )}
       </div>

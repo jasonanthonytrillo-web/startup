@@ -17,7 +17,10 @@ use App\Http\Controllers\AuthController;
 Route::get('/products', [ProductController::class, 'index']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{orderNumber}', [OrderController::class, 'show']);
+Route::post('/orders/{orderNumber}/cancel', [OrderController::class, 'cancel']);
 Route::get('/queue', [OrderController::class, 'queue']);
+
+Route::post('/push-subscriptions', [\App\Http\Controllers\PushSubscriptionController::class, 'store']);
 
 // Auth routes
 Route::post('/login', [AuthController::class, 'login']);

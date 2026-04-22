@@ -1,24 +1,62 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { getOrder } from '../services/api';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { getOrder, cancelOrder } from '../services/api';
+import CustomerCancelModal from '../components/CustomerCancelModal';
+import { subscribeToPush } from '../utils/push';
 
 export default function OrderConfirmation() {
   const { orderNumber } = useParams();
+  const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [pushStatus, setPushStatus] = useState('idle'); // idle, loading, success, error
+  const [pushError, setPushError] = useState('');
 
   useEffect(() => {
     loadOrder();
+    const interval = setInterval(loadOrder, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval);
   }, [orderNumber]);
 
   const loadOrder = async () => {
     try {
       const response = await getOrder(orderNumber);
-      setOrder(response.data.data);
+      const newOrder = response.data.data;
+      setOrder(newOrder);
+
+      // If order is completed or cancelled, clear data and redirect after a delay
+      if (['completed', 'cancelled'].includes(newOrder.status)) {
+        setTimeout(() => {
+          localStorage.removeItem('last_order_number');
+          navigate('/');
+        }, 5000); // 5 second delay to see the final status
+      }
     } catch (error) {
       console.error('Failed to load order:', error);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const handleCancel = async () => {
+    try {
+      await cancelOrder(orderNumber);
+      loadOrder();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to cancel order.');
+    }
+  };
+
+  const handleEnablePush = async () => {
+    setPushStatus('loading');
+    setPushError('');
+    const result = await subscribeToPush(orderNumber);
+    if (result.success) {
+      setPushStatus('success');
+    } else {
+      setPushStatus('error');
+      setPushError(result.error);
     }
   };
 
@@ -74,6 +112,29 @@ export default function OrderConfirmation() {
             </div>
           )}
 
+          {order.status !== 'completed' && order.status !== 'cancelled' && (
+            <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'rgba(255, 107, 53, 0.05)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-primary)' }}>
+              <p style={{ fontSize: '0.9rem', marginBottom: 'var(--space-sm)', fontWeight: '600' }}>
+                🔔 Want to know when your order is ready?
+              </p>
+              <button
+                onClick={handleEnablePush}
+                disabled={pushStatus === 'loading' || pushStatus === 'success'}
+                className="btn btn-primary"
+                style={{ width: '100%', fontSize: '0.9rem', padding: 'var(--space-sm)' }}
+              >
+                {pushStatus === 'loading' ? 'Enabling...' : 
+                 pushStatus === 'success' ? 'Notifications Enabled!' : 
+                 'Enable Push Notifications'}
+              </button>
+              {pushStatus === 'error' && (
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-danger)', marginTop: 'var(--space-xs)' }}>
+                  {pushError || 'Failed to enable. Please check browser permissions.'}
+                </p>
+              )}
+            </div>
+          )}
+
           <div style={{ textAlign: 'left', marginTop: 'var(--space-xl)' }}>
             <div className="summary-row">
               <span style={{ color: 'var(--color-text-secondary)' }}>Customer</span>
@@ -108,6 +169,30 @@ export default function OrderConfirmation() {
           </div>
 
         </div>
+
+        {order.status === 'pending' && (
+          <button 
+            onClick={() => setIsCancelModalOpen(true)}
+            className="btn btn-secondary" 
+            style={{ 
+              marginTop: 'var(--space-md)', 
+              width: '100%', 
+              color: 'var(--color-danger)',
+              borderColor: 'var(--color-danger)',
+              background: 'transparent',
+              opacity: 0.8
+            }}
+          >
+            Cancel Order
+          </button>
+        )}
+
+        <CustomerCancelModal
+          isOpen={isCancelModalOpen}
+          onClose={() => setIsCancelModalOpen(false)}
+          onConfirm={handleCancel}
+          orderNumber={orderNumber}
+        />
 
         <div className="confirmation-actions" style={{ maxWidth: '500px', margin: 'var(--space-md) auto 0' }}>
           <Link to="/queue" className="btn btn-primary" id="view-queue-btn" style={{flex: 1}}>

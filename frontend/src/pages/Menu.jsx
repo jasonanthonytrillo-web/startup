@@ -1,14 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getProducts } from '../services/api';
 import ProductCard from '../components/ProductCard';
+import { useCart } from '../context/CartContext';
 
 export default function Menu() {
   const [products, setProducts] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
+  const { syncStock } = useCart();
+  const pollingRef = useRef(null);
 
   useEffect(() => {
     loadProducts();
+
+    // Poll for stock updates every 15 seconds
+    pollingRef.current = setInterval(() => {
+      fetchAndCacheProducts(false);
+    }, 15000);
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
   }, []);
 
   const loadProducts = async () => {
@@ -35,6 +47,10 @@ export default function Menu() {
       const productData = response.data.data;
       setProducts(productData);
       sessionStorage.setItem('cached_menu_data', JSON.stringify(productData));
+
+      // Sync latest stock values to cart items
+      const allProducts = Object.values(productData).flat();
+      syncStock(allProducts);
     } catch (error) {
       console.error('Failed to load products:', error);
     } finally {

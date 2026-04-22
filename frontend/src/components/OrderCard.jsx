@@ -45,19 +45,9 @@ export default function OrderCard({ order, onUpdateStatus, onViewDetails }) {
               Received at {new Date(order.accepted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
-          <select 
-            className={`status-badge status-${order.status}`}
-            value={order.status}
-            onChange={(e) => onUpdateStatus(order.id, e.target.value)}
-            disabled={isTerminal}
-            style={{ cursor: isTerminal ? 'not-allowed' : 'pointer', border: 'none', paddingRight: 'var(--space-md)' }}
-          >
-            <option value="pending">Pending</option>
-            <option value="preparing">Preparing</option>
-            <option value="serving">Serving</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+          <span className={`status-badge status-${order.status}`}>
+            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+          </span>
         </div>
         <div className="admin-order-info" style={{ padding: '0 var(--space-xl)', marginBottom: 'var(--space-md)' }}>
           <span style={{ fontWeight: '700', fontSize: '1rem' }}>{order.customer_name}</span>

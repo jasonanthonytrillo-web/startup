@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Models\PushSubscription;
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
 
 class AdminController extends Controller
 {
@@ -51,10 +55,13 @@ class AdminController extends Controller
         $filtered = $orders->where('created_at', '>=', $sinceDate);
         
         $sales = $filtered->filter(function ($order) {
-            if ($order->status === 'cancelled') return false;
-            if ($order->payment_method === 'cash') {
-                return $order->status === 'completed';
+            // Do not count cancelled or pending orders as sales
+            if (in_array($order->status, ['cancelled', 'pending'])) {
+                return false;
             }
+            
+            // For cash orders, we only count sales once they are accepted into the kitchen (preparing)
+            // For cashless (Maya/GCash), they start at 'preparing' so they are counted immediately
             return true;
         })->sum('total');
 
@@ -76,52 +83,86 @@ class AdminController extends Controller
             'pin' => 'nullable|string|size:6',
         ]);
 
-        $order = Order::findOrFail($id);
-        $oldStatus = $order->status;
-        $isTerminalCurrent = in_array($oldStatus, ['completed', 'cancelled']);
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                // Eager load items and products for stock management
+                $order = Order::with('items.product')->findOrFail($id);
+                $oldStatus = $order->status;
+                $newStatus = $request->status;
 
-        // Require PIN ONLY for unlocking terminal orders (undoing finalized states)
-        if ($isTerminalCurrent) {
-            $managerPin = env('MANAGER_PIN', '123456');
-            if ($request->pin !== (string)$managerPin) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Manager PIN required to unlock this finalized order.',
-                ], 403);
-            }
-        }
-        
-        $updates = ['status' => $request->status];
-
-        // Assign queue position if cash order gets accepted into kitchen
-        if ($oldStatus === 'pending' && $request->status === 'preparing') {
-            $activeOrdersCount = Order::whereIn('status', ['preparing', 'serving'])->count();
-            $updates['queue_position'] = $activeOrdersCount + 1;
-            $updates['accepted_at'] = now();
-        }
-
-        $order->update($updates);
-
-        // Recalculate queue positions when an order is completed
-        if ($request->status === 'completed') {
-            $this->recalculateQueuePositions();
-        }
-
-        // Restore stock when an order is cancelled (only when transitioning INTO cancelled)
-        if ($request->status === 'cancelled' && $oldStatus !== 'cancelled') {
-            foreach ($order->items as $item) {
-                if ($item->product) {
-                    $item->product->increment('stock', $item->quantity);
+                if ($oldStatus === $newStatus) {
+                    return response()->json(['success' => true, 'data' => $order]);
                 }
-            }
+
+                $isTerminalCurrent = in_array($oldStatus, ['completed', 'cancelled']);
+
+                // Require PIN ONLY for unlocking terminal orders (undoing finalized states)
+                if ($isTerminalCurrent) {
+                    $managerPin = env('MANAGER_PIN', '123456');
+                    if ($request->pin !== (string)$managerPin) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Manager PIN required to unlock this finalized order.',
+                        ], 403);
+                    }
+                }
+                
+                // Handle Stock Adjustments
+                // 1. Moving TO cancelled: Restore stock
+                if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+                    foreach ($order->items as $item) {
+                        if ($item->product) {
+                            $item->product->increment('stock', $item->quantity);
+                        }
+                    }
+                }
+                
+                // 2. Moving FROM cancelled: Check and Reduce stock
+                if ($oldStatus === 'cancelled' && $newStatus !== 'cancelled') {
+                    foreach ($order->items as $item) {
+                        if (!$item->product) continue;
+                        
+                        // Check if enough stock is available to re-activate
+                        if ($item->product->stock < $item->quantity) {
+                            throw new \Exception("Insufficient stock for {$item->product->name} ({$item->product->stock} available). Cannot re-activate order.");
+                        }
+                        
+                        $item->product->decrement('stock', $item->quantity);
+                    }
+                }
+
+                $updates = ['status' => $newStatus];
+
+                // Assign queue position if cash order gets accepted into kitchen
+                if ($oldStatus === 'pending' && $newStatus === 'preparing') {
+                    $activeOrdersCount = Order::whereIn('status', ['preparing', 'serving'])->count();
+                    $updates['queue_position'] = $activeOrdersCount + 1;
+                    $updates['accepted_at'] = now();
+                }
+
+                $order->update($updates);
+
+                // Send push notification if status is 'serving'
+                if ($newStatus === 'serving') {
+                    $this->sendPushNotification($order);
+                }
+
+                // Recalculate queue positions when an order is completed
+                if ($newStatus === 'completed') {
+                    $this->recalculateQueuePositions();
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $order->fresh('items.product'),
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order status: ' . $e->getMessage(),
+            ], 400);
         }
-
-        $order->load('items.product');
-
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-        ]);
     }
 
     /**
@@ -135,6 +176,58 @@ class AdminController extends Controller
 
         foreach ($activeOrders as $index => $order) {
             $order->update(['queue_position' => $index + 1]);
+        }
+    }
+
+    /**
+     * Send Web Push Notification to the customer.
+     */
+    private function sendPushNotification(Order $order): void
+    {
+        $pushSubscriptions = PushSubscription::where('order_number', $order->order_number)->get();
+
+        if ($pushSubscriptions->isEmpty()) {
+            return;
+        }
+
+        $auth = [
+            'VAPID' => [
+                'subject' => env('VAPID_SUBJECT', 'mailto:admin@example.com'),
+                'publicKey' => env('VAPID_PUBLIC_KEY'),
+                'privateKey' => env('VAPID_PRIVATE_KEY'),
+            ],
+        ];
+
+        try {
+            $webPush = new WebPush($auth);
+
+            foreach ($pushSubscriptions as $pushSub) {
+                $subscription = Subscription::create([
+                    'endpoint' => $pushSub->endpoint,
+                    'publicKey' => $pushSub->public_key,
+                    'authToken' => $pushSub->auth_token,
+                ]);
+
+                $webPush->queueNotification(
+                    $subscription,
+                    json_encode([
+                        'title' => 'Your Order is Ready!',
+                        'body' => "Order #{$order->order_number} is now being served. Please proceed to the counter.",
+                        'url' => "/order/{$order->order_number}",
+                    ])
+                );
+            }
+
+            foreach ($webPush->flush() as $report) {
+                if (!$report->isSuccess()) {
+                    // Log failure or handle expired subscriptions
+                    if ($report->isSubscriptionExpired()) {
+                        PushSubscription::where('endpoint', $report->getEndpoint())->delete();
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Push notification failed: ' . $e->getMessage());
         }
     }
 }

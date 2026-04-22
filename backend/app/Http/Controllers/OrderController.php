@@ -49,10 +49,11 @@ class OrderController extends Controller
                 $total = 0;
 
                 foreach ($request->items as $item) {
-                    $product = Product::findOrFail($item['product_id']);
+                    // Lock for update to prevent race conditions during stock check/decrement
+                    $product = Product::lockForUpdate()->findOrFail($item['product_id']);
                     
                     if ($product->stock < $item['quantity']) {
-                        throw new \Exception("Insufficient stock for {$product->name}. Only {$product->stock} available.");
+                        throw new \Exception("Oops! Someone just grabbed the last of the {$product->name}. We only have {$product->stock} left in the kitchen. Please adjust your cart and try again!");
                     }
 
                     $itemTotal = $product->price * $item['quantity'];
@@ -83,7 +84,57 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create order: ' . $e->getMessage(),
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel an order (customer-initiated).
+     * Only allowed if status is 'pending'.
+     */
+    public function cancel(string $orderNumber): JsonResponse
+    {
+        try {
+            return DB::transaction(function () use ($orderNumber) {
+                $order = Order::with('items.product')
+                    ->where('order_number', $orderNumber)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$order) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Order not found.',
+                    ], 404);
+                }
+
+                if ($order->status !== 'pending') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Order cannot be cancelled because it is already being {$order->status}.",
+                    ], 400);
+                }
+
+                // Restore stock
+                foreach ($order->items as $item) {
+                    if ($item->product) {
+                        $item->product->increment('stock', $item->quantity);
+                    }
+                }
+
+                $order->update(['status' => 'cancelled']);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Order cancelled successfully.',
+                    'data' => $order,
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel order: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -116,7 +167,12 @@ class OrderController extends Controller
     public function queue(): JsonResponse
     {
         $orders = Order::whereIn('status', ['preparing', 'serving'])
-            ->with('items.product')
+            ->select('id', 'order_number', 'customer_name', 'order_type', 'status', 'queue_position')
+            ->with(['items' => function($query) {
+                $query->select('id', 'order_id', 'product_id', 'quantity');
+            }, 'items.product' => function($query) {
+                $query->select('id', 'name');
+            }])
             ->orderBy('queue_position')
             ->get();
 

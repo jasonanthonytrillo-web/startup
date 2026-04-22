@@ -7,7 +7,7 @@ import PinModal from '../components/PinModal';
 import ProductManagement from '../components/ProductManagement';
 
 const statusFilters = [
-  { id: 'all', label: 'All Orders' },
+  { id: 'all', label: 'Live Orders' },
   { id: 'pending', label: 'Pending' },
   { id: 'preparing', label: 'Preparing' },
   { id: 'serving', label: 'Serving' },
@@ -31,6 +31,7 @@ export default function Admin() {
   });
   const [showFilters, setShowFilters] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -40,9 +41,34 @@ export default function Admin() {
     }
 
     loadOrders();
-    const interval = setInterval(loadOrders, 10000); // Poll every 10 seconds
+    const interval = setInterval(loadOrders, 3000); // Poll every 3 seconds for real-time feel
     return () => clearInterval(interval);
   }, [navigate]);
+
+  const playNotificationSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = 'sine';
+      // High-pitched friendly "ding"
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+      oscillator.frequency.exponentialRampToValueAtTime(440, audioContext.currentTime + 0.3); // A4
+
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (e) {
+      console.warn('Audio notification failed:', e);
+    }
+  };
 
   const loadOrders = async () => {
     try {
@@ -59,6 +85,7 @@ export default function Admin() {
         );
         
         if (newPendingOrders.length > 0) {
+          playNotificationSound(); // Play sound for new orders
           setNotifications(prev => {
             const existingIds = new Set(prev.map(n => n.id));
             const distinctNew = newPendingOrders.filter(n => !existingIds.has(n.id));
@@ -263,23 +290,93 @@ export default function Admin() {
                   Refresh
                 </button>
               </div>
+
+              <div className="admin-search animate-fade-in-up delay-2" style={{ marginBottom: 'var(--space-lg)' }}>
+                <div style={{ position: 'relative', maxWidth: '100%' }}>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Search by Order # or Customer Name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ 
+                      paddingLeft: 'var(--space-2xl)',
+                      height: '45px',
+                      fontSize: '0.95rem'
+                    }}
+                  />
+                  <span style={{ 
+                    position: 'absolute', 
+                    left: '12px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)',
+                    opacity: 0.5,
+                    fontSize: '1.1rem'
+                  }}>
+                    🔍
+                  </span>
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '1.2rem',
+                        cursor: 'pointer',
+                        opacity: 0.5
+                      }}
+                    >
+                      &times;
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="admin-orders">
-              {orders.filter(o => activeFilter === 'all' || o.status === activeFilter).length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 'var(--space-2xl)', color: 'var(--color-text-muted)' }}>
-                  No orders found
-                </div>
-              ) : (
-                orders.filter(o => activeFilter === 'all' || o.status === activeFilter).map((order) => (
+              {(() => {
+                const filtered = orders.filter(o => {
+                  if (activeFilter === 'all') {
+                    // Main list only shows active orders
+                    return ['pending', 'preparing', 'serving'].includes(o.status);
+                  }
+                  
+                  const matchesStatus = o.status === activeFilter;
+                  const matchesSearch = 
+                    o.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    o.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
+                  return matchesStatus && matchesSearch;
+                });
+
+                // Apply search to "Live Orders" too
+                const finalFiltered = activeFilter === 'all' 
+                  ? filtered.filter(o => 
+                      o.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      o.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                  : filtered;
+
+                if (finalFiltered.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: 'var(--space-2xl)', color: 'var(--color-text-muted)' }}>
+                      {searchTerm ? 'No orders match your search' : 'No orders found'}
+                    </div>
+                  );
+                }
+
+                return finalFiltered.map((order) => (
                   <OrderCard
                     key={order.id}
                     order={order}
                     onUpdateStatus={handleUpdateStatus}
                     onViewDetails={setSelectedOrder}
                   />
-                ))
-              )}
+                ));
+              })()}
             </div>
           </>
         ) : (

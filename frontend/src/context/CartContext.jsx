@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
 
 const CartContext = createContext();
 
@@ -62,6 +62,22 @@ function cartReducer(state, action) {
       newState = { ...state, items: [] };
       break;
 
+    case 'SYNC_STOCK': {
+      const stockMap = {};
+      action.payload.forEach(p => { stockMap[p.id] = p.stock; });
+      newState = {
+        ...state,
+        items: state.items.map(item => {
+          const latestStock = stockMap[item.id];
+          if (latestStock !== undefined) {
+            return { ...item, stock: latestStock };
+          }
+          return item;
+        }),
+      };
+      break;
+    }
+
     default:
       return state;
   }
@@ -83,12 +99,41 @@ function loadCartFromStorage() {
 
 export function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, null, loadCartFromStorage);
+  const [stockWarning, setStockWarning] = useState(null);
+  const warningTimerRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
 
+  const showStockWarning = useCallback((productName, stock) => {
+    // Clear any existing timer
+    if (warningTimerRef.current) {
+      clearTimeout(warningTimerRef.current);
+    }
+    setStockWarning({ productName, stock, key: Date.now() });
+    warningTimerRef.current = setTimeout(() => {
+      setStockWarning(null);
+      warningTimerRef.current = null;
+    }, 3500);
+  }, []);
+
+  const dismissStockWarning = useCallback(() => {
+    if (warningTimerRef.current) {
+      clearTimeout(warningTimerRef.current);
+      warningTimerRef.current = null;
+    }
+    setStockWarning(null);
+  }, []);
+
   const addToCart = (product) => {
+    const existingItem = state.items.find(item => item.id === product.id);
+    const currentQty = existingItem ? existingItem.quantity : 0;
+
+    if (currentQty + 1 > product.stock) {
+      showStockWarning(product.name, product.stock);
+      return;
+    }
     dispatch({ type: 'ADD_ITEM', payload: product });
   };
 
@@ -97,11 +142,20 @@ export function CartProvider({ children }) {
   };
 
   const updateQuantity = (productId, quantity) => {
+    const item = state.items.find(i => i.id === productId);
+    if (item && quantity > item.stock) {
+      showStockWarning(item.name, item.stock);
+      return;
+    }
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id: productId, quantity } });
   };
 
   const clearCart = () => {
     dispatch({ type: 'CLEAR_CART' });
+  };
+
+  const syncStock = (products) => {
+    dispatch({ type: 'SYNC_STOCK', payload: products });
   };
 
   const getItemCount = () => {
@@ -123,8 +177,11 @@ export function CartProvider({ children }) {
         removeFromCart,
         updateQuantity,
         clearCart,
+        syncStock,
         getItemCount,
         getTotal,
+        stockWarning,
+        dismissStockWarning,
       }}
     >
       {children}

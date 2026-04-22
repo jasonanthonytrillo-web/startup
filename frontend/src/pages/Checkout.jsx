@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { createOrder } from '../services/api';
 
@@ -106,6 +106,11 @@ export default function Checkout() {
   return (
     <div className="checkout-page" id="checkout-page">
       <div className="container">
+        <div style={{ marginBottom: 'var(--space-md)' }}>
+          <Link to="/cart" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--color-text-secondary)', textDecoration: 'none', fontWeight: '600' }}>
+            ← Back to Cart
+          </Link>
+        </div>
         <div className="page-header animate-fade-in-up">
           <h1 className="page-title">Checkout</h1>
           <p className="page-subtitle">

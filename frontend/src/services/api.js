@@ -28,6 +28,7 @@ export const getProducts = () => api.get('/products');
 // Orders
 export const createOrder = (orderData) => api.post('/orders', orderData);
 export const getOrder = (orderNumber) => api.get(`/orders/${orderNumber}`);
+export const cancelOrder = (orderNumber) => api.post(`/orders/${orderNumber}/cancel`);
 export const getQueue = () => api.get('/queue');
 
 // Admin - Orders

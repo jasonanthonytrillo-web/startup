@@ -61,3 +61,48 @@ self.addEventListener('fetch', (event) => {
     fetch(request).catch(() => caches.match(request))
   );
 });
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  try {
+    const data = event.data.json();
+    const options = {
+      body: data.body || 'Your order status has been updated!',
+      icon: '/mk_food_corner_app_icon.png',
+      badge: '/favicon.svg',
+      data: {
+        url: data.url || '/'
+      },
+      vibrate: [200, 100, 200],
+      requireInteraction: true
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'MK Food Corner', options)
+    );
+  } catch (e) {
+    console.error('Push event error:', e);
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const urlToOpen = new URL(event.notification.data.url, self.location.origin).href;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // If a window is already open with the URL, focus it
+      for (let client of windowClients) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise, open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});

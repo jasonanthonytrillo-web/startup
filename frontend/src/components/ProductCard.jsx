@@ -27,14 +27,28 @@ export default function ProductCard({ product }) {
             {parseFloat(product.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
           {product.stock > 0 ? (
-            <button
-              className="add-to-cart-btn"
-              onClick={() => addToCart(product)}
-              aria-label={`Add ${product.name} to cart`}
-              id={`add-to-cart-${product.id}`}
-            >
-              +
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+              {product.stock <= 10 && (
+                <span className="low-stock-badge" style={{ 
+                  fontSize: '0.7rem', 
+                  color: 'white', 
+                  background: 'var(--color-danger)',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  fontWeight: '700'
+                }}>
+                  {product.stock} LEFT
+                </span>
+              )}
+              <button
+                className="add-to-cart-btn"
+                onClick={() => addToCart(product)}
+                aria-label={`Add ${product.name} to cart`}
+                id={`add-to-cart-${product.id}`}
+              >
+                +
+              </button>
+            </div>
           ) : (
             <span className="out-of-stock-label" style={{ 
               color: 'var(--color-danger)', 

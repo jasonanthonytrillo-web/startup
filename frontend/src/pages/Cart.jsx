@@ -26,6 +26,11 @@ export default function Cart() {
   return (
     <div className="cart-page" id="cart-page">
       <div className="container">
+        <div style={{ marginBottom: 'var(--space-md)' }}>
+          <Link to="/menu" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--color-text-secondary)', textDecoration: 'none', fontWeight: '600' }}>
+            ← Back to Menu
+          </Link>
+        </div>
         <div className="page-header animate-fade-in-up">
           <h1 className="page-title">Your Cart</h1>
           <p className="page-subtitle">
