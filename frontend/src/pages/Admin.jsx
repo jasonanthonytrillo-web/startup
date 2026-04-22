@@ -119,16 +119,33 @@ export default function Admin() {
       return;
     }
 
+    const previousOrders = [...orders];
+
     try {
+      // Optimistic Update: Update the UI immediately
+      setOrders(prev => prev.map(o => 
+        o.id === orderId ? { ...o, status: newStatus } : o
+      ));
+      
       await updateOrderStatus(orderId, newStatus, pin);
       setPinModal({ isOpen: false, orderId: null, status: null, error: false });
       loadOrders();
     } catch (error) {
+      // If it fails, revert the orders to previous state
+      setOrders(previousOrders);
+
       if (error.response?.status === 403) {
         setPinModal(prev => ({ ...prev, error: true }));
       } else {
-        console.error('Failed to update status:', error);
-        alert(error.response?.data?.message || 'Failed to update order status.');
+        // Only show alert if it's NOT a timeout or empty response (which often actually worked)
+        const errorMessage = error.response?.data?.message;
+        if (errorMessage || (error.response && error.response.status !== 504)) {
+          console.error('Failed to update status:', error);
+          alert(errorMessage || 'Failed to update order status.');
+        } else {
+          // If it was a timeout/network error, just refresh to see if it actually worked
+          loadOrders();
+        }
       }
     }
   };
