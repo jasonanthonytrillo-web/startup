@@ -8,16 +8,28 @@ export default function Queue() {
   const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
+    // Try to load from session cache for instant display
+    const cachedQueue = sessionStorage.getItem('cached_queue_data');
+    if (cachedQueue) {
+      setQueueData(JSON.parse(cachedQueue));
+      setLoading(false);
+      setLastUpdated(new Date());
+    }
+
     loadQueue();
-    const interval = setInterval(loadQueue, 5000); // Poll every 5 seconds
+    const interval = setInterval(loadQueue, 10000); // Poll every 10 seconds to save server resources
     return () => clearInterval(interval);
   }, []);
 
   const loadQueue = async () => {
     try {
       const response = await getQueue();
-      setQueueData(response.data.data);
+      const newData = response.data.data;
+      setQueueData(newData);
       setLastUpdated(new Date());
+      
+      // Cache for next time
+      sessionStorage.setItem('cached_queue_data', JSON.stringify(newData));
     } catch (error) {
       console.error('Failed to load queue:', error);
     } finally {
@@ -72,7 +84,7 @@ export default function Queue() {
         )}
 
         <div className="queue-refresh">
-          {loading ? 'Fetching latest data...' : `Auto-refreshing every 5 seconds • Last updated: ${lastUpdated?.toLocaleTimeString() || 'Just now'}`}
+          {loading ? 'Fetching latest data...' : `Auto-refreshing every 10 seconds • Last updated: ${lastUpdated?.toLocaleTimeString() || 'Just now'}`}
         </div>
       </div>
     </div>
