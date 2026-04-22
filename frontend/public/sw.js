@@ -76,8 +76,11 @@ self.addEventListener('push', (event) => {
       data: {
         url: data.url || '/'
       },
-      vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40], // More distinct vibration pattern
-      requireInteraction: true
+      vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40], // Long, high-attention pattern
+      requireInteraction: true,
+      silent: false,
+      dir: 'ltr',
+      timestamp: Date.now()
     };
 
     event.waitUntil(

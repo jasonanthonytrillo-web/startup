@@ -93,18 +93,14 @@ class AdminController extends Controller
                 return response()->json(['success' => true, 'data' => $order]);
             }
 
-            return DB::transaction(function () use ($request, $order, $newStatus, $oldStatus) {
-
+            DB::transaction(function () use ($request, $order, $newStatus, $oldStatus) {
                 $isTerminalCurrent = in_array($oldStatus, ['completed', 'cancelled']);
 
                 // Require PIN ONLY for unlocking terminal orders (undoing finalized states)
                 if ($isTerminalCurrent) {
                     $managerPin = env('MANAGER_PIN', '123456');
                     if ($request->pin !== (string)$managerPin) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Manager PIN required to unlock this finalized order.',
-                        ], 403);
+                        throw new \Exception('Manager PIN required to unlock this finalized order.', 403);
                     }
                 }
                 
