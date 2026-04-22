@@ -71,10 +71,12 @@ self.addEventListener('push', (event) => {
       body: data.body || 'Your order status has been updated!',
       icon: '/mk_food_corner_app_icon.png',
       badge: '/favicon.svg',
+      tag: 'order-status-update',
+      renotify: true,
       data: {
         url: data.url || '/'
       },
-      vibrate: [200, 100, 200],
+      vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40], // More distinct vibration pattern
       requireInteraction: true
     };
 

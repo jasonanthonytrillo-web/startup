@@ -225,10 +225,11 @@ class AdminController extends Controller
                 $webPush->queueNotification(
                     $subscription,
                     json_encode([
-                        'title' => 'Your Order is Ready!',
+                        'title' => 'Your Order is Ready! 🍽️',
                         'body' => "Order #{$order->order_number} is now being served. Please proceed to the counter.",
                         'url' => "/order/{$order->order_number}",
-                    ])
+                    ]),
+                    ['TTL' => 2419200, 'urgency' => 'high'] // 4 weeks TTL, High Urgency for screen-off delivery
                 );
             }
 
