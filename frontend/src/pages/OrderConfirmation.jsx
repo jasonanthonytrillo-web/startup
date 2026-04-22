@@ -52,8 +52,17 @@ export default function OrderConfirmation() {
     setPushStatus('loading');
     setPushError('');
     const result = await subscribeToPush(orderNumber);
-    if (result.success) {
-      setPushStatus('success');
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(reg => {
+        reg.update(); // Force update check
+        console.log('Service Worker updated and active');
+      });
+      if (result.success) {
+        setPushStatus('success');
+      } else {
+        setPushStatus('error');
+        setPushError(result.error);
+      }
     } else {
       setPushStatus('error');
       setPushError(result.error);

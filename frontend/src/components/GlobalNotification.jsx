@@ -139,12 +139,33 @@ export default function GlobalNotification() {
     };
   }, [location.pathname]);
 
+  const effectsIntervalRef = useRef(null);
+
+  const stopLoopingEffects = useCallback(() => {
+    if (effectsIntervalRef.current) {
+      clearInterval(effectsIntervalRef.current);
+      effectsIntervalRef.current = null;
+    }
+    // Stop any ongoing vibration
+    if ('vibrate' in navigator) navigator.vibrate(0);
+  }, []);
+
   const fireNotificationEffects = useCallback(() => {
     playNotificationSound();
     triggerVibration();
-    // Vibrate again after a second for emphasis
-    setTimeout(() => triggerVibration(), 1200);
   }, []);
+
+  const startLoopingEffects = useCallback(() => {
+    stopLoopingEffects(); // Clear existing if any
+    
+    // Fire immediately
+    fireNotificationEffects();
+    
+    // Then loop every 3 seconds
+    effectsIntervalRef.current = setInterval(() => {
+      fireNotificationEffects();
+    }, 3000);
+  }, [fireNotificationEffects, stopLoopingEffects]);
 
   const startPolling = (orderNum) => {
     if (pollingRef.current) clearInterval(pollingRef.current);
@@ -166,9 +187,9 @@ export default function GlobalNotification() {
         if (['completed', 'cancelled'].includes(order.status)) {
           clearInterval(pollingRef.current);
           pollingRef.current = null;
+          stopLoopingEffects();
         }
       } catch (e) {
-        // If order not found or error, stop polling to avoid spam
         if (e.response?.status === 404) {
           clearInterval(pollingRef.current);
           pollingRef.current = null;
@@ -181,19 +202,31 @@ export default function GlobalNotification() {
     setShowServingModal(true);
     
     if (hasInteracted) {
-      fireNotificationEffects();
+      startLoopingEffects();
     } else {
-      // Queue it — will fire on next user interaction
       pendingNotificationRef.current = true;
     }
   };
+
+  // Ensure effects start if user interacts while modal is already shown (but was pending)
+  useEffect(() => {
+    if (showServingModal && hasInteracted && pendingNotificationRef.current) {
+      pendingNotificationRef.current = false;
+      startLoopingEffects();
+    }
+  }, [showServingModal, hasInteracted, startLoopingEffects]);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => stopLoopingEffects();
+  }, [stopLoopingEffects]);
 
   if (!showServingModal) return null;
 
   return (
     <div className="modal-overlay" style={{ zIndex: 99999, background: 'rgba(0,0,0,0.7)' }}>
       <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center', padding: 'var(--space-2xl) var(--space-xl)' }}>
-        <div style={{ fontSize: '4rem', marginBottom: 'var(--space-md)', animation: 'bounceIn 0.6s ease' }}>🍴</div>
+        <div style={{ fontSize: '4rem', marginBottom: 'var(--space-md)', animation: 'bounceIn 0.6s ease' }}>🔔</div>
         <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: 'var(--space-sm)' }}>Order is Ready!</h2>
         <p style={{ color: 'var(--color-text-secondary)', lineHeight: '1.6', marginBottom: 'var(--space-xl)' }}>
           Your order is now serving. 
@@ -201,7 +234,10 @@ export default function GlobalNotification() {
         </p>
         <button 
           className="btn btn-primary btn-lg btn-block" 
-          onClick={() => setShowServingModal(false)}
+          onClick={() => {
+            setShowServingModal(false);
+            stopLoopingEffects();
+          }}
           style={{ padding: 'var(--space-md)' }}
         >
           I'm going now!

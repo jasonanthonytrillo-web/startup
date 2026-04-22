@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mk-kiosk-v3';
+const CACHE_NAME = 'mk-food-corner-v2';
 const STATIC_ASSETS = [
   '/manifest.webmanifest'
 ];
