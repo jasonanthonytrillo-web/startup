@@ -24,10 +24,13 @@ class AuthController extends Controller
             ]);
         }
 
+        // Speed Boost: Delete all old tokens for this user in one go
+        $user->tokens()->delete();
+
         $token = $user->createToken('admin-token')->plainTextToken;
 
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'data' => [
                 'user' => $user,
                 'token' => $token
