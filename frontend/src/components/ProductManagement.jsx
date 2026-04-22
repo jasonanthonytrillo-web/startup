@@ -46,11 +46,13 @@ export default function ProductManagement({ showFilters = true }) {
   const handleAddProduct = () => {
     setSelectedProduct(null);
     setIsModalOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteProduct = async (id) => {

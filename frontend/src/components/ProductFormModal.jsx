@@ -52,17 +52,12 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, product =
     }
   }, [product, isOpen]);
 
-  // Prevent background scrolling when modal is open
+  // Let the body scroll normally if needed
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [isOpen]);
+  }, []);
 
   const handleCategoryChange = (value) => {
     setCategorySelect(value);
@@ -128,40 +123,42 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, product =
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content animate-scale-in" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
-        <div className="modal-header">
-          <h2 className="modal-title">{product ? 'Edit Product' : 'Add New Product'}</h2>
-          <button className="btn-close" onClick={onClose}>&times;</button>
-        </div>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-          <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', overflowY: 'auto', flex: 1, minHeight: 0 }}>
-            <div className="form-group">
-              <label className="form-label">Product Name</label>
-              <input
-                type="text"
-                className="form-input"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                placeholder="e.g. Mocha Latte"
-              />
-            </div>
+      <div className="modal-content animate-scale-in" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
+        <form onSubmit={handleSubmit} style={{ margin: 0 }}>
+          <div className="modal-header">
+            <h2 className="modal-title">{product ? 'Edit Product' : 'Add New Product'}</h2>
+            <button type="button" className="btn-close" onClick={onClose}>&times;</button>
+          </div>
+          <div className="modal-body">
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Product Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  placeholder="e.g. Mocha Latte"
+                />
+              </div>
 
-            <div className="form-group">
-              <label className="form-label">Category</label>
-              <select
-                className="form-input"
-                value={categorySelect}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                required={!isNewCategory}
-                style={{ cursor: 'pointer' }}
-              >
-                <option value="" disabled>Select a category</option>
-                {existingCategories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-                <option value="__new__">＋ New Category...</option>
-              </select>
+              <div className="form-group">
+                <label className="form-label">Category</label>
+                <select
+                  className="form-input"
+                  value={categorySelect}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  required={!isNewCategory}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <option value="" disabled>Select a category</option>
+                  {existingCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                  <option value="__new__">＋ New Category...</option>
+                </select>
+              </div>
             </div>
 
             {isNewCategory && (
@@ -220,65 +217,67 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, product =
               </label>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Description</label>
-              <textarea
-                className="form-input"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows="2"
-                placeholder="Product description..."
-              ></textarea>
-            </div>
+            <div className="form-row">
+              <div className="form-group" style={{ flex: 2 }}>
+                <label className="form-label">Description</label>
+                <textarea
+                  className="form-input"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  style={{ height: '120px', resize: 'none' }}
+                  placeholder="Product description..."
+                ></textarea>
+              </div>
 
-            <div className="form-group">
-              <label className="form-label">Product Image</label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-                id="product-image-upload"
-              />
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Product Image</label>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                  id="product-image-upload"
+                />
 
-              {imagePreview ? (
-                <div className="image-upload-preview">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="image-preview-img"
-                  />
-                  <div className="image-preview-actions">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-secondary"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Change Image
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-danger"
-                      onClick={removeImage}
-                    >
-                      Remove
-                    </button>
+                {imagePreview ? (
+                  <div className="image-upload-preview" style={{ height: '120px' }}>
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="image-preview-img"
+                    />
+                    <div className="image-preview-actions">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Change
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-danger"
+                        onClick={removeImage}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div
-                  className="image-upload-dropzone"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <div className="image-upload-icon">📷</div>
-                  <p className="image-upload-text">Click to choose an image</p>
-                  <p className="image-upload-hint">JPG, PNG or WebP • Max 2MB</p>
-                </div>
-              )}
+                ) : (
+                  <div
+                    className="image-upload-dropzone"
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{ padding: 'var(--space-md)', height: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                  >
+                    <div className="image-upload-icon" style={{ fontSize: '1.2rem' }}>📷</div>
+                    <p className="image-upload-text" style={{ fontSize: '0.75rem' }}>Click to choose</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <div className="modal-footer" style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-md)', paddingBottom: 'var(--space-md)' }}>
+          <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
               Cancel
             </button>

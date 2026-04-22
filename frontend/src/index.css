@@ -57,7 +57,9 @@
 }
 
 /* ========== Reset & Base ========== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -91,7 +93,12 @@ body::before {
   flex-direction: column;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
   font-weight: 700;
   line-height: 1.2;
@@ -114,7 +121,9 @@ button {
   font-family: var(--font-body);
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   font-family: var(--font-body);
   outline: none;
 }
@@ -162,8 +171,13 @@ input, select, textarea {
 
 /* ========== Animations ========== */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
@@ -171,6 +185,7 @@ input, select, textarea {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -182,6 +197,7 @@ input, select, textarea {
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -189,24 +205,53 @@ input, select, textarea {
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 @keyframes bounceIn {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.15); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .animate-fade-in {
@@ -222,17 +267,21 @@ input, select, textarea {
 }
 
 /* Staggered delay utility */
-.delay-5 { animation-delay: 0.5s; opacity: 0; }
+.delay-5 {
+  animation-delay: 0.5s;
+  opacity: 0;
+}
 
 /* Collapsible Animation Wrapper */
 .collapsible-wrapper {
   overflow: hidden;
-  max-height: 500px; /* Large enough for filters */
+  max-height: 500px;
+  /* Large enough for filters */
   opacity: 1;
-  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity 0.3s ease,
-              margin-bottom 0.4s ease,
-              padding-top 0.4s ease;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease,
+    margin-bottom 0.4s ease,
+    padding-top 0.4s ease;
 }
 
 .collapsible-wrapper.collapsed {
@@ -1384,7 +1433,7 @@ input, select, textarea {
   .landing-title {
     font-size: 2.2rem;
   }
-  
+
   .navbar-logo {
     font-size: 1.2rem;
   }
@@ -1407,7 +1456,7 @@ input, select, textarea {
   .admin-order-actions .btn {
     width: 100%;
   }
-  
+
   .stat-number {
     font-size: 1.5rem;
   }
@@ -1451,7 +1500,7 @@ input, select, textarea {
     grid-template-columns: 1fr;
     gap: var(--space-md);
   }
-  
+
   .summary-value {
     font-size: 1.5rem !important;
   }
@@ -1491,9 +1540,17 @@ input, select, textarea {
 }
 
 @keyframes stale-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(255, 23, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 23, 68, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 23, 68, 0);
+  }
 }
 
 .stale-badge {
@@ -1539,7 +1596,7 @@ select.status-badge {
   font-size: 0.75rem;
   letter-spacing: 0.5px;
   border-radius: var(--radius-full);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all var(--transition-fast);
 }
 
@@ -1550,7 +1607,8 @@ select.status-badge:hover {
 
 select.status-badge option {
   background-color: white !important;
-  color: #1e293b !important; /* Dark slate text */
+  color: #1e293b !important;
+  /* Dark slate text */
   padding: 10px !important;
 }
 
@@ -1596,17 +1654,17 @@ select.status-badge option {
   .product-table-wrapper {
     display: none;
   }
-  
+
   .product-grid-mobile {
     display: flex;
   }
-  
+
   .product-management-header {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-md);
   }
-  
+
   .product-management-header button {
     width: 100%;
   }
@@ -1673,9 +1731,19 @@ select.status-badge option {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 .pin-hint {
@@ -1704,7 +1772,7 @@ select.status-badge option {
 .toast {
   background: white;
   border-radius: var(--radius-lg);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   border: 1px solid var(--color-border);
   padding: var(--space-md);
   display: flex;
@@ -1718,7 +1786,7 @@ select.status-badge option {
 
 .toast:hover {
   transform: translateY(-2px);
-  box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
   border-color: var(--color-primary);
 }
 
@@ -1769,6 +1837,7 @@ select.status-badge option {
     right: var(--space-md);
     left: var(--space-md);
   }
+
   .toast {
     min-width: 0;
     width: 100%;
@@ -1846,40 +1915,56 @@ select.status-badge option {
   color: var(--color-success);
 }
 
-.step.pending .step-dot { background: #94a3b8; border-color: #94a3b8; }
-.step.preparing .step-dot { background: var(--color-warning); border-color: var(--color-warning); }
-.step.serving .step-dot { background: #8b5cf6; border-color: #8b5cf6; }
-.step.completed .step-dot { background: var(--color-success); border-color: var(--color-success); }
+.step.pending .step-dot {
+  background: #94a3b8;
+  border-color: #94a3b8;
+}
+
+.step.preparing .step-dot {
+  background: var(--color-warning);
+  border-color: var(--color-warning);
+}
+
+.step.serving .step-dot {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+}
+
+.step.completed .step-dot {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
 
 
 /* ========== Modal Styles ========== */
 .modal-overlay {
-  position: fixed;
+  position: absolute;
+  /* Change from fixed to absolute */
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(15, 23, 42, 0.2); /* Much lighter, just a slight tint */
-  backdrop-filter: blur(8px); /* Stronger glass blur */
-  -webkit-backdrop-filter: blur(8px); /* For Safari */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999; /* Ensure it stays on top */
-  padding: var(--space-md);
-  animation: fade-in var(--transition-normal);
+  width: 100%;
+  min-height: 200vh;
+  background: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(40px);
+  display: block;
+  z-index: 10000;
+  padding: 50px 20px;
+  animation: fade-in 0.3s ease-out;
 }
 
 .modal-content {
   background: white;
   width: 100%;
-  max-width: 600px;
-  max-height: 90vh; /* Prevent modal from exceeding screen height */
+  max-width: 800px;
+  margin: 0 auto 50px;
+  /* Centering and bottom margin */
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-2xl);
-  animation: slide-up var(--transition-normal);
+  border-radius: 20px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+  animation: slide-up 0.3s ease-out;
+  position: relative;
 }
 
 .modal-header {
@@ -1899,9 +1984,10 @@ select.status-badge option {
 }
 
 .modal-body {
-  padding: var(--space-xl);
-  max-height: 70vh;
-  overflow-y: auto;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .modal-footer {
@@ -1953,18 +2039,38 @@ select.status-badge option {
 }
 
 @keyframes slide-up {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
+
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 
@@ -1978,13 +2084,23 @@ select.status-badge option {
 }
 
 @keyframes cancel-overlay-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes cancel-overlay-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 .cancel-modal {
@@ -2018,8 +2134,13 @@ select.status-badge option {
 }
 
 @keyframes cancel-gradient-slide {
-  0% { background-position: 0% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: 0% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .cancel-modal.closing {
@@ -2031,6 +2152,7 @@ select.status-badge option {
     opacity: 0;
     transform: scale(0.85) translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -2042,6 +2164,7 @@ select.status-badge option {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+
   to {
     opacity: 0;
     transform: scale(0.9) translateY(10px);
@@ -2073,14 +2196,29 @@ select.status-badge option {
 }
 
 @keyframes cancel-icon-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 @keyframes cancel-icon-pop {
-  0% { transform: scale(0.5) rotate(-10deg); }
-  60% { transform: scale(1.15) rotate(5deg); }
-  100% { transform: scale(1) rotate(0deg); }
+  0% {
+    transform: scale(0.5) rotate(-10deg);
+  }
+
+  60% {
+    transform: scale(1.15) rotate(5deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 /* Checkmark animation */
@@ -2091,7 +2229,9 @@ select.status-badge option {
 }
 
 @keyframes checkmark-draw {
-  to { stroke-dashoffset: 0; }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 /* Title & Subtitle */
@@ -2289,5 +2429,3 @@ select.status-badge option {
   justify-content: center;
   border-top: 1px solid var(--color-border);
 }
-
-
