@@ -11,6 +11,14 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+// Emergency Rescue Route
+Route::get('/clear-cache', function() {
+    \Artisan::call('config:clear');
+    \Artisan::call('route:clear');
+    \Artisan::call('view:clear');
+    return "Cache cleared successfully! Database connection should be restored.";
+});
+
 use App\Http\Controllers\AuthController;
 
 // Public routes
