@@ -13,10 +13,18 @@ class AdminController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        // Get the oldest date we need for any summary (30 days ago)
+        $startDate = now()->subDays(30)->startOfDay();
+        
+        // Fetch only necessary columns for the summary to save memory
+        $summaryOrders = Order::where('created_at', '>=', $startDate)
+            ->select('id', 'total', 'status', 'payment_method', 'created_at')
+            ->get();
+
         $summary = [
-            'today' => $this->getSummaryForPeriod(now()->startOfDay()),
-            'week' => $this->getSummaryForPeriod(now()->subDays(7)->startOfDay()),
-            'month' => $this->getSummaryForPeriod(now()->subDays(30)->startOfDay()),
+            'today' => $this->calculateSummary($summaryOrders, now()->startOfDay()),
+            'week' => $this->calculateSummary($summaryOrders, now()->subDays(7)->startOfDay()),
+            'month' => $this->calculateSummary($summaryOrders, $startDate),
         ];
 
         $query = Order::with('items.product')->orderBy('created_at', 'desc');
@@ -25,7 +33,8 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        $orders = $query->get();
+        // Limit the number of orders in the list to prevent massive JSON responses
+        $orders = $query->limit(100)->get();
 
         return response()->json([
             'success' => true,
@@ -35,25 +44,25 @@ class AdminController extends Controller
     }
 
     /**
-     * Helper to get summary statistics for a period starting from $startDate.
+     * Calculate summary statistics from a collection of orders.
      */
-    private function getSummaryForPeriod($startDate): array
+    private function calculateSummary($orders, $sinceDate): array
     {
-        $sales = Order::where('created_at', '>=', $startDate)
-            ->where(function ($query) {
-                $query->where('payment_method', '!=', 'cash')
-                      ->where('status', '!=', 'cancelled')
-                      ->orWhere(function ($q) {
-                          $q->where('payment_method', 'cash')
-                            ->where('status', 'completed');
-                      });
-            })->sum('total');
+        $filtered = $orders->where('created_at', '>=', $sinceDate);
+        
+        $sales = $filtered->filter(function ($order) {
+            if ($order->status === 'cancelled') return false;
+            if ($order->payment_method === 'cash') {
+                return $order->status === 'completed';
+            }
+            return true;
+        })->sum('total');
 
         return [
-            'sales' => $sales,
-            'orders' => Order::where('created_at', '>=', $startDate)->count(),
-            'completed' => Order::where('status', 'completed')->where('created_at', '>=', $startDate)->count(),
-            'cancelled' => Order::where('status', 'cancelled')->where('created_at', '>=', $startDate)->count(),
+            'sales' => (float)$sales,
+            'orders' => $filtered->count(),
+            'completed' => $filtered->where('status', 'completed')->count(),
+            'cancelled' => $filtered->where('status', 'cancelled')->count(),
         ];
     }
 
