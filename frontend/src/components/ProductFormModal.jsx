@@ -133,8 +133,8 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, product =
           <h2 className="modal-title">{product ? 'Edit Product' : 'Add New Product'}</h2>
           <button className="btn-close" onClick={onClose}>&times;</button>
         </div>
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', maxHeight: '65vh', overflowY: 'auto' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', overflowY: 'auto', flex: 1, minHeight: 0 }}>
             <div className="form-group">
               <label className="form-label">Product Name</label>
               <input
