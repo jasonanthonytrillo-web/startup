@@ -5,7 +5,7 @@ import QueueCard from '../components/QueueCard';
 export default function Queue() {
   const [queueData, setQueueData] = useState({ preparing: [], serving: [], total_active: 0 });
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(null);
+
 
   useEffect(() => {
     // Try to load from session cache for instant display
@@ -13,7 +13,7 @@ export default function Queue() {
     if (cachedQueue) {
       setQueueData(JSON.parse(cachedQueue));
       setLoading(false);
-      setLastUpdated(new Date());
+
     }
 
     loadQueue();
@@ -26,7 +26,7 @@ export default function Queue() {
       const response = await getQueue();
       const newData = response.data.data;
       setQueueData(newData);
-      setLastUpdated(new Date());
+
       
       // Cache for next time
       sessionStorage.setItem('cached_queue_data', JSON.stringify(newData));
@@ -83,9 +83,7 @@ export default function Queue() {
           </div>
         )}
 
-        <div className="queue-refresh">
-          {loading ? 'Fetching latest data...' : `Auto-refreshing every 10 seconds • Last updated: ${lastUpdated?.toLocaleTimeString() || 'Just now'}`}
-        </div>
+
       </div>
     </div>
   );
