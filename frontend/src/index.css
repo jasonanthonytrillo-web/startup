@@ -1193,7 +1193,6 @@ textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-sm);
 }
 
 .queue-card-number {
